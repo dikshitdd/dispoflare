@@ -13,35 +13,18 @@ import { getRoutingZones } from '~/models/routing.server'
 import { getAddresses } from '~/models/address.server'
 import { getSetting } from '~/models/settings.server'
 
-export
- async function action({ request, context }: ActionFunctionArgs) {
-  const formData = await request.formData();
+export async function action({ request, context }: ActionFunctionArgs) {
+  const formData = await request.formData()
 
-  // Handle POST requests for both form and URL methods
-  if (request.method === 'POST') {
-    const rule = formData.get('rule') || ''; // Allow empty rule for URL method
-    const zone = JSON.parse(formData.get('zone'));
-    const address = formData.get('address');
-    const expire = formData.get('expire');
-    const remove = !!formData.get('remove');   
+  const rule = formData.get('rule')
+  const zone = JSON.parse(formData.get('zone'))
+  const address = formData.get('address')
+  const expire = formData.get('expire')
+  const remove = !!formData.get('remove')
 
+  await createRule({ rule, zone, address, expire, remove }, context)
 
-    if (rule) { // Create rule from form data
-      await createRule({ rule, zone, address, expire, remove }, context);
-    } else { // Create rule from URL if no rule provided in form
-      const url = formData.get('url'); // Extract URL from form data
-      if (url) {
-        await createRuleFromUrl(url, context); // Use new function for URL creation
-      } else {
-        throw new Error('Missing rule or URL in form data');
-      }
-    }
-
-    return redirect('/manage');
-  }
-
-  // Handle other methods (e.g., GET) as needed
-  return new Response('Method not allowed', { status: 405 });
+  return redirect('/manage')
 }
 
 export async function loader({ context }: LoaderFunctionArgs) {
